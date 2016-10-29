@@ -14,18 +14,7 @@
 # along with APOD feed fixer.  If not, see <http://www.gnu.org/licenses/>.
 
 
-SOURCE_URL = 'http://apod.nasa.gov/apod.rss'
-FEED_URL = 'https://apod.fragdev.com'
-FEED_TITLE = 'Astronomy Picture of the Day (FragDev Cache)'
-FEED_DESCRIPTION = """
-This feed is a restructured, slightly modified and repaired version of the
-Astronomy Picture of the Day feed generously provided by NASA, Goddard
-Space Flight Center, NASA's Astrophysics Science Division, and Michigan
-Tech U. The original feed can be found at http://apod.nasa.gov/apod.rss.
-"""
-
-
-def fetch_feed(url):
+def fetch_feed(url, debug):
     """ Fetch data from a URL
     """
 
@@ -63,12 +52,13 @@ def fetch_feed(url):
     return r.data
 
 
-def create_feed(title, url, description, data):
+def generate_feed(title, url, description, data, debug):
     """ Parse RSS feed data and restructure it using known good elements of the
     feed, like title and link.
     """
 
     from datetime import datetime
+    import pytz
     from xml.etree import ElementTree
 
     # Parse the feed into an XML tree
@@ -83,17 +73,20 @@ def create_feed(title, url, description, data):
     channel = ElementTree.SubElement(fixed_feed, 'channel')
 
     # Set general feed details
-    feed_title = ElementTree.SubElement(fixed_feed, 'title')
+    feed_title = ElementTree.SubElement(channel, 'title')
     feed_title.text = title
-    feed_link = ElementTree.SubElement(fixed_feed, 'link')
+    feed_link = ElementTree.SubElement(channel, 'link')
     feed_link.text = url
-    feed_desc = ElementTree.SubElement(fixed_feed, 'desc')
+    feed_desc = ElementTree.SubElement(channel, 'desc')
     feed_desc.text = description
-    feed_lang = ElementTree.SubElement(fixed_feed, 'lang')
+    feed_lang = ElementTree.SubElement(channel, 'lang')
     feed_lang.text = 'en-us'
-    feed_update = ElementTree.SubElement(fixed_feed, 'lastBuildDate')
-    feed_update_date = datetime.today()
-    feed_update.text = feed_update_date.strftime('%a, %d %b %Y %H:%i:%s %z')
+
+    # Generate the date with UTC, so we can get the right format for RSS
+    utc = pytz.utc
+    now = datetime.now(utc)
+    feed_update = ElementTree.SubElement(channel, 'lastBuildDate')
+    feed_update.text = now.strftime('%a, %d %b %Y %H:%M:%S %z')
 
     # Convert each picture, or item node, into a better version of itself
     for picture in pictures:
