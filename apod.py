@@ -1,23 +1,17 @@
 # This file is part of the APOD feed fixer.
 # 
-# Foobar is free software: you can redistribute it and/or modify
+# APOD feed fixer is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 # 
-# Foobar is distributed in the hope that it will be useful,
+# APOD feed fixer is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # 
 # You should have received a copy of the GNU General Public License
-# along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
-
-from datetime import datetime
-import re
-import sys
-import urllib3
-from xml.etree import ElementTree
+# along with APOD feed fixer.  If not, see <http://www.gnu.org/licenses/>.
 
 
 SOURCE_URL = 'http://apod.nasa.gov/apod.rss'
@@ -31,9 +25,12 @@ Tech U. The original feed can be found at http://apod.nasa.gov/apod.rss.
 """
 
 
-def update():
-    """ Update the APOD cache from the RSS feed
+def fetch_feed(url):
+    """ Fetch data from a URL
     """
+
+    # from datetime import datetime
+    import urllib3
 
     http = urllib3.PoolManager()
     headers = {}
@@ -45,7 +42,7 @@ def update():
     #        self.last_updated)
     #    headers = {'If-Modified-Since': self.last_updated}
 
-    r = http.request('GET', self.SOURCE_URL, headers=headers)
+    r = http.request('GET', url, headers=headers)
 
     # Feed has not been updated since last fetch
     #if r.status is 304:
@@ -53,18 +50,29 @@ def update():
     #        print('[D] Feed is unmodified; skipping update.')
     #    return
 
-    # Request wasn't successful somehow
+    # Request didn't return HTTP 200 (OK)
     if not r.status == 200:
 
-        if self.debug:
+        if debug:
             error = '[D] Feed returned non-200 HTTP code of {}.'.format(
                 r.status)
             print(error)
 
         raise Exception('HTTP ERROR: {}'.format(r.status))
 
+    return r.data
+
+
+def create_feed(title, url, description, data):
+    """ Parse RSS feed data and restructure it using known good elements of the
+    feed, like title and link.
+    """
+
+    from datetime import datetime
+    from xml.etree import ElementTree
+
     # Parse the feed into an XML tree
-    latest_feed = ElementTree.fromstring(r.data)
+    latest_feed = ElementTree.fromstring(data)
 
     # Get all of the items that we need
     pictures = latest_feed.findall('./channel/item')
@@ -76,11 +84,11 @@ def update():
 
     # Set general feed details
     feed_title = ElementTree.SubElement(fixed_feed, 'title')
-    feed_title.text = self.FEED_TITLE
+    feed_title.text = title
     feed_link = ElementTree.SubElement(fixed_feed, 'link')
-    feed_link.text = self.FEED_URL
+    feed_link.text = url
     feed_desc = ElementTree.SubElement(fixed_feed, 'desc')
-    feed_desc.text = self.FEED_DESCRIPTION
+    feed_desc.text = description
     feed_lang = ElementTree.SubElement(fixed_feed, 'lang')
     feed_lang.text = 'en-us'
     feed_update = ElementTree.SubElement(fixed_feed, 'lastBuildDate')
@@ -101,4 +109,4 @@ def update():
         description.text = '<a href="{}">{}</a>'.format(
             old_link.text, old_title.text)
 
-    self.fixed_feed = ElementTree.tostring(fixed_feed, encoding='unicode')
+    return ElementTree.tostring(fixed_feed, encoding='unicode')
