@@ -15,7 +15,7 @@ Usage
 
 To generate a fixed APOD feed, the following command can be scripted:
 
-    curl http://apod.nasa.gov/apod.rss | \
+    curl -s http://apod.nasa.gov/apod.rss | \
         python __init__.py > fixed_feed.rss
 
 This program is not designed to host the file itself, for simplicity's sake. The
