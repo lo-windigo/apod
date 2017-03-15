@@ -14,7 +14,7 @@
 # along with APOD feed fixer.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import getopt, io, sys
+import getopt, sys
 from apod import fetch_feed, generate_feed
 
 
@@ -72,7 +72,7 @@ if __name__ == "__main__":
                 source = fetch_feed(value)
 
             elif switch in ('-o', '--output'):
-                output = io.open(value, 'w')
+                output = open(value, 'w')
 
     except Exception as err:
         print(err) >> sys.stderr
@@ -81,7 +81,7 @@ if __name__ == "__main__":
 
     # Get all of stdin if we haven't been given an URL to fetch
     if not source:
-        source = sys.stdin.read()
+        source = sys.stdin.buffer.read().decode(errors="ignore")
 
     output.write(generate_feed(FEED_TITLE,
         FEED_URL,
