@@ -14,46 +14,9 @@
 # along with APOD feed fixer.  If not, see <http://www.gnu.org/licenses/>.
 
 
-def fetch_feed(url, debug):
-    """ Fetch data from a URL
-    """
-
-    # from datetime import datetime
-    import urllib3
-
-    http = urllib3.PoolManager()
-    headers = {}
-
-    # Fetch the feed data
-    #if self.last_updated:
-    #    if self.debug:
-    #        print('[D] Setting "If-Modified-Since" header to "{}".' %
-    #        self.last_updated)
-    #    headers = {'If-Modified-Since': self.last_updated}
-
-    r = http.request('GET', url, headers=headers)
-
-    # Feed has not been updated since last fetch
-    #if r.status is 304:
-    #    if self.debug:
-    #        print('[D] Feed is unmodified; skipping update.')
-    #    return
-
-    # Request didn't return HTTP 200 (OK)
-    if not r.status == 200:
-
-        if debug:
-            error = '[D] Feed returned non-200 HTTP code of {}.'.format(
-                r.status)
-            print(error)
-
-        raise Exception('HTTP ERROR: {}'.format(r.status))
-
-    return r.data
-
-
 def generate_feed(title, url, description, data, debug):
-    """ Parse RSS feed data and restructure it using known good elements of the
+    """
+    Parse RSS feed data and restructure it using known good elements of the
     feed, like title and link.
     """
 
