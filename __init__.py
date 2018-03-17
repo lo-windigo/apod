@@ -15,7 +15,7 @@
 
 
 import getopt, sys
-from apod import fetch_feed, generate_feed
+from apod import generate_feed
 
 
 FEED_URL = 'https://apod.fragdev.com'
