@@ -31,18 +31,16 @@ Tech U. The original feed can be found at http://apod.nasa.gov/apod.rss.
 def usage():
     return """
 USAGE:
-    xxx [[-i|--input] http://example.com/rss] [[-o|--output] out.file] [-d|--debug]
+    xxx [[-o|--output] out.file] [-d|--debug] < INPUT
 
     All arguments are optional; if unspecified, program reads from stdin and
     sends output to stdout.
 
 OPTIONS:
-    -i | --input
-        Specifies a URL to fetch and process. 
     -o | --output
         Filename and/or path to write to.
     -d | --debug
-        Print debugging information
+        Print debugging information. Just kidding, does nothing!
 
 EXAMPLES:
 
@@ -53,23 +51,18 @@ EXAMPLES:
 # If this module was called directly, run it
 if __name__ == "__main__":
 
-    debug = False
-    source = False
+    source = sys.stdin.buffer.read().decode(errors="ignore")
     output = sys.stdout
 
     try:
         opt, args = getopt.getopt(sys.argv, 'di:o:', [
                 '--debug',
-                '--input=',
                 '--output='])
 
         for switch, value in opt:
 
             if switch in ('-d', '--debug'):
                 debug = True
-
-            elif switch in ('-i', '--input'):
-                source = fetch_feed(value)
 
             elif switch in ('-o', '--output'):
                 output = open(value, 'w')
@@ -79,13 +72,13 @@ if __name__ == "__main__":
         print(usage()) >> sys.stderr
         exit(1)
 
-    # Get all of stdin if we haven't been given an URL to fetch
+    # Check to make sure we have data to work with
     if not source:
-        source = sys.stdin.buffer.read().decode(errors="ignore")
+        print('No feed data found.')
+        exit(1)
 
     output.write(generate_feed(FEED_TITLE,
         FEED_URL,
         FEED_DESCRIPTION,
-        source,
-        debug))
+        source))
 
