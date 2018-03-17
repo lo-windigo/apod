@@ -13,27 +13,23 @@
 # You should have received a copy of the GNU General Public License
 # along with APOD feed fixer.  If not, see <http://www.gnu.org/licenses/>.
 
+from datetime import datetime
+import pytz
+from xml.etree import ElementTree
 
-def generate_feed(title, url, description, data, debug):
+
+def generate_feed(title, url, description, data):
     """
     Parse RSS feed data and restructure it using known good elements of the
     feed, like title and link.
     """
 
-    from datetime import datetime
-    import pytz
-    from xml.etree import ElementTree
-
     # Parse the feed into an XML tree
     latest_feed = ElementTree.fromstring(data)
-
-    # Get all of the items that we need
-    pictures = latest_feed.findall('./channel/item')
 
     # Begin to create the new, fixed document
     fixed_feed = ElementTree.Element('rss')
     fixed_feed.set('version', '2.0')
-    channel = ElementTree.SubElement(fixed_feed, 'channel')
 
     # Set general feed details
     feed_title = ElementTree.SubElement(channel, 'title')
@@ -52,17 +48,28 @@ def generate_feed(title, url, description, data, debug):
     feed_update.text = now.strftime('%a, %d %b %Y %H:%M:%S %z')
 
     # Convert each picture, or item node, into a better version of itself
-    for picture in pictures:
-        item = ElementTree.SubElement(channel, 'item')
+    channel = ElementTree.SubElement(fixed_feed, 'channel')
 
-        old_title = picture.find('title')
-        item.append(old_title)
-        old_link = picture.find('link')
-        item.append(old_link)
-        
-        # Create a new, less ugly description
-        description = ElementTree.SubElement(item, 'description')
-        description.text = '<a href="{}">{}</a>'.format(
-            old_link.text, old_title.text)
+    for picture in latest_feed.findall('./channel/item'):
+        channel.append(reformat_item(picture))
 
     return ElementTree.tostring(fixed_feed, encoding='unicode')
+
+
+def reformat_item(feed_element):
+    """
+    Create a new XML element for a single item
+    """
+    item = ElementTree.Element('item')
+
+    # Carry over the old title and link
+    item.append(feed_element.find('title'))
+    item.append(feed_element.find('link'))
+    
+    # Create a new, less ugly description
+    description = ElementTree.SubElement(item, 'description')
+    description.text = '<a href="{}">{}</a>'.format(
+        old_link.text, old_title.text)
+
+    return item
+
