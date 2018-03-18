@@ -14,10 +14,6 @@
 # along with APOD feed fixer.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import getopt, sys
-from apod import generate_feed
-
-
 FEED_URL = 'https://apod.fragdev.com'
 FEED_TITLE = 'Astronomy Picture of the Day (FragDev Cache)'
 FEED_DESCRIPTION = """
@@ -50,6 +46,9 @@ EXAMPLES:
 
 # If this module was called directly, run it
 if __name__ == "__main__":
+
+    import getopt, sys
+    from apod import generate_feed
 
     source = sys.stdin.buffer.read().decode(errors="ignore")
     output = sys.stdout

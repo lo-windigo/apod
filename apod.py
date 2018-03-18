@@ -30,6 +30,7 @@ def generate_feed(title, url, description, data):
     # Begin to create the new, fixed document
     fixed_feed = ElementTree.Element('rss')
     fixed_feed.set('version', '2.0')
+    channel = ElementTree.SubElement(fixed_feed, 'channel')
 
     # Set general feed details
     feed_title = ElementTree.SubElement(channel, 'title')
@@ -48,8 +49,6 @@ def generate_feed(title, url, description, data):
     feed_update.text = now.strftime('%a, %d %b %Y %H:%M:%S %z')
 
     # Convert each picture, or item node, into a better version of itself
-    channel = ElementTree.SubElement(fixed_feed, 'channel')
-
     for picture in latest_feed.findall('./channel/item'):
         channel.append(reformat_item(picture))
 
@@ -63,13 +62,15 @@ def reformat_item(feed_element):
     item = ElementTree.Element('item')
 
     # Carry over the old title and link
-    item.append(feed_element.find('title'))
-    item.append(feed_element.find('link'))
+    original_title = feed_element.find('title')
+    original_link = feed_element.find('link')
+    item.append(original_title)
+    item.append(original_link)
     
     # Create a new, less ugly description
     description = ElementTree.SubElement(item, 'description')
     description.text = '<a href="{}">{}</a>'.format(
-        old_link.text, old_title.text)
+        original_link.text, original_title.text)
 
     return item
 
