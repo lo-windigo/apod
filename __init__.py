@@ -49,7 +49,9 @@ if __name__ == "__main__":
 
     import getopt, sys
     from apod import generate_feed
+    from xml.etree.ElementTree import ParseError
 
+    debug = False
     source = sys.stdin.buffer.read().decode(errors="ignore")
     output = sys.stdout
 
@@ -76,8 +78,13 @@ if __name__ == "__main__":
         print('No feed data found.')
         exit(1)
 
-    output.write(generate_feed(FEED_TITLE,
-        FEED_URL,
-        FEED_DESCRIPTION,
-        source))
+    try:
+        output.write(generate_feed(FEED_TITLE,
+            FEED_URL,
+            FEED_DESCRIPTION,
+            source))
+    except ParseError as err:
+        if debug:
+            print(err) >> sys.stderr
+        exit(1)
 
